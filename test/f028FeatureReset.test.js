@@ -18,3 +18,13 @@ test('F-028 feature reset removes illuminated foam and resets remaining modules'
   assert.match(handler, /Işıklı Strafor sahneden silinecek/);
   assert.match(handler, /Işıklı Strafor sahneden silindi/);
 });
+
+test('F-028 feature reset keeps locks and never deletes a locked illuminated foam', () => {
+  const main = readFileSync(new URL('../src/main.js', import.meta.url), 'utf8');
+  const start = main.indexOf("resetModuleFeaturesButton.addEventListener('click'");
+  const end = main.indexOf('function applyActiveColorToSelection', start);
+  const handler = main.slice(start, end);
+  assert.match(handler, /module\?\.type === 'illuminated-foam' && !isModuleLocked\(module\)/);
+  assert.match(handler, /if \(isModuleLocked\(module\)\) resetModules\[index\]\.locked = true;/);
+  assert.match(handler, /\(isModuleLocked\(module\) \? module : null\)/);
+});

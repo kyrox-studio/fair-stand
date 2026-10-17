@@ -53,6 +53,16 @@ test('import proje stand ve modül tipi doğrular', () => {
   assert.equal(badStand.ok, false);
 });
 
+test('import modül kilidini kabul eder; boolean olmayan kilidi reddeder', () => {
+  const project = (modules) => ({ id: 'p1', version: 1, modules });
+  assert.equal(validateImportedProjectState(project([{ id: 'm1', type: 'flat-panel', locked: true }])).ok, true);
+  assert.equal(validateImportedProjectState(project([{ id: 'm1', type: 'flat-panel', locked: false }])).ok, true);
+  assert.equal(validateImportedProjectState(project([{ id: 'm1', type: 'flat-panel' }])).ok, true, 'eski proje kilitsiz');
+  const bad = validateImportedProjectState(project([{ id: 'm1', type: 'flat-panel', locked: 'evet' }]));
+  assert.equal(bad.ok, false);
+  assert.match(bad.message, /kilidi/);
+});
+
 test('eski tek zemin projesi floorArea olmadan açılır; geçersiz alan reddedilir', () => {
   const legacy = validateImportedProjectState({
     id: 'p1',

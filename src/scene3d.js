@@ -84,6 +84,7 @@ import {
   planContinuousModuleInsert,
   planContinuousModuleMove,
 } from './moduleMove.js';
+import { MODULE_LOCKED_MESSAGE, guardPlanAgainstLocks, isModuleLocked } from './moduleLock.js';
 import { getModuleGhostBehavior, isFreePlacementModule, isTopPlacementModule, isWallOverlayModule, requiresShortUpJointSnap, resolveModuleRotationDeltaDeg, supportsWallOverlayMount, usesPanelSeamOverlaySnap } from './moduleBehavior.js';
 import { createModuleCatalogPreview } from './moduleDragSidebar.js';
 
@@ -1214,6 +1215,8 @@ export function createStandScene(
   const selectedSurfaces = new Set();
   let selectionAnchorSurfaceId = null;
   let selectedModuleId = null;
+  // Shift+tık toplu seçimi (kalıcı değil): toplu kilitleme gibi çok öğeli işlemler içindir.
+  const multiSelectedModuleIds = new Set();
   let placementGhost = null;
   let dragSession = null;
   let keyboardRotationCursor = null;
@@ -1414,7 +1417,7 @@ export function createStandScene(
   }
 
   function notifySelection() {
-    onSurfaceSelected?.([...selectedSurfaces]);
+    onSurfaceSelected?.([...selectedSurfaces], getSelectedModuleIds());
   }
 
   function setFloorAreaHighlight(selected) {
@@ -1459,7 +1462,45 @@ export function createStandScene(
     });
   }
 
+  function clearMultiModuleSelection() {
+    multiSelectedModuleIds.forEach((moduleId) => setModuleSelectionVisual(moduleId, false));
+    multiSelectedModuleIds.clear();
+  }
+
+  // Shift+tık: modülü toplu seçime ekler ya da çıkarır. Mevcut tek seçim varsa
+  // ilk Shift+tıkta toplu seçime taşınır; böylece tık + Shift+tık iki öğe seçer.
+  function toggleMultiModuleSelection(moduleId) {
+    if (!moduleId) return;
+    const singleModuleId = getSingleSelectedModuleGroup()?.userData?.moduleState?.id ?? null;
+    if (!multiSelectedModuleIds.size && singleModuleId && singleModuleId !== moduleId) {
+      multiSelectedModuleIds.add(singleModuleId);
+    }
+    selectedSurfaces.forEach((mesh) => setSelectionVisual(mesh, false));
+    selectedSurfaces.clear();
+    selectionAnchorSurfaceId = null;
+    floorSelected = false;
+    floorAreaSelected = false;
+    setFloorAreaHighlight(false);
+    if (multiSelectedModuleIds.has(moduleId)) {
+      multiSelectedModuleIds.delete(moduleId);
+      setModuleSelectionVisual(moduleId, false);
+    } else {
+      multiSelectedModuleIds.add(moduleId);
+    }
+    multiSelectedModuleIds.forEach((id) => setModuleSelectionVisual(id, true));
+    selectedModuleId = multiSelectedModuleIds.size === 1 ? [...multiSelectedModuleIds][0] : null;
+    notifySelection();
+  }
+
+  /** Seçili modül kimlikleri: toplu seçim varsa onlar, yoksa tek seçim. */
+  function getSelectedModuleIds() {
+    if (multiSelectedModuleIds.size) return [...multiSelectedModuleIds];
+    const single = getSingleSelectedModuleGroup()?.userData?.moduleState?.id ?? null;
+    return single ? [single] : [];
+  }
+
   function clearSelection({ notify = true, keepAnchor = false } = {}) {
+    clearMultiModuleSelection();
     setModuleSelectionVisual(selectedModuleId, false);
     selectedSurfaces.forEach((mesh) => setSelectionVisual(mesh, false));
     selectedSurfaces.clear();
@@ -1483,6 +1524,7 @@ export function createStandScene(
   }
 
   function selectModuleOnly(moduleId) {
+    clearMultiModuleSelection();
     setModuleSelectionVisual(selectedModuleId, false);
     selectedSurfaces.forEach((mesh) => setSelectionVisual(mesh, false));
     selectedSurfaces.clear();
@@ -2697,6 +2739,11 @@ export function createStandScene(
     const moduleState = moduleGroup?.userData?.moduleState;
     if (!moduleGroup || !moduleState?.placement) return { handled: false, ok: false };
 
+    if (isModuleLocked(moduleState)) {
+      showPlacementFeedback(MODULE_LOCKED_MESSAGE, { durationMs: 1800 });
+      return { handled: true, ok: false, message: MODULE_LOCKED_MESSAGE };
+    }
+
     if (getFabricMoveLock(moduleState.id)) {
       const message = 'Bu modül tek parça Lightbox/Mesh kaplamasına bağlı. Döndürmek için önce kaplamayı kaldır.';
       showPlacementFeedback(message, { durationMs: 1800 });
@@ -3163,6 +3210,8 @@ export function createStandScene(
         ...snapCollisionExemption(magneticSnap),
       });
     }
+    // Zincire ekleme kilitli bir modülü kaydıracaksa bırakma reddedilir.
+    plan = guardPlanAgainstLocks(plan, renderedModules);
 
     const previewPlacement = plan.ok && plan.movingPlacement
       ? plan.movingPlacement
@@ -3219,6 +3268,20 @@ export function createStandScene(
       event.clientY - dragSession.startClientY,
     );
     if (!dragSession.dragging && distance < DRAG_THRESHOLD_PX) return;
+
+    // Kilitli modül sürüklenmez: kamera da dönmez, yalnız uyarı gösterilir.
+    // Sürükleme başlamadığı için bırakınca modül normal tıklama gibi seçilir.
+    if (dragSession.locked) {
+      if (!dragSession.lockedWarned) {
+        dragSession.lockedWarned = true;
+        showPlacementFeedback(MODULE_LOCKED_MESSAGE, {
+          clientX: event.clientX,
+          clientY: event.clientY,
+          durationMs: 1800,
+        });
+      }
+      return;
+    }
 
     dragSession.dragging = true;
     dragSession.lastClientX = event.clientX;
@@ -3567,6 +3630,8 @@ export function createStandScene(
         ...snapCollisionExemption(magneticSnap),
       });
     }
+    // Taşıma zinciri kaydırıp kilitli bir komşuyu oynatacaksa reddedilir.
+    plan = guardPlanAgainstLocks(plan, renderedModules);
 
     const previewPlacement = plan.ok && plan.movingPlacement
       ? plan.movingPlacement
@@ -5137,7 +5202,8 @@ export function createStandScene(
     event.preventDefault();
     event.stopPropagation();
 
-    if (context.surfaceId) {
+    // Toplu seçimdeki bir modüle sağ tık seçimi bozmaz; menü bütün seçime uygulanır.
+    if (context.surfaceId && !multiSelectedModuleIds.has(context.moduleId)) {
       const contextSurface = surfaceMeshes.find(
         (surface) => surface.userData.surfaceId === context.surfaceId,
       );
@@ -5212,6 +5278,19 @@ export function createStandScene(
       clearSelection();
     }
   }
+
+  // Shift + sol tık bir modülün üstündeyse toplu seçime ekler/çıkarır ve kameraya
+  // gitmez. Boş alanda dokunulmaz: OrbitControls'un Shift davranışı (pan) korunur.
+  renderer.domElement.addEventListener('pointerdown', (event) => {
+    if (event.button !== 0 || !event.shiftKey || event.ctrlKey || event.metaKey || event.altKey) return;
+    if (!stageLayout || floorAreaDrawArmed) return;
+    const picked = pickModuleAt(event.clientX, event.clientY);
+    const moduleId = picked?.moduleGroup?.userData?.moduleState?.id ?? null;
+    if (!moduleId) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    toggleMultiModuleSelection(moduleId);
+  }, { capture: true });
 
   // Ctrl/Cmd + sol tık çoklu panel seçimini OrbitControls'tan önce yakala.
   // Capture fazı kamera döndürme listener'ının seçimi bozmasını engeller.
@@ -5294,6 +5373,9 @@ export function createStandScene(
       dragAnchorOffsetYCm: dragStartPoint ? moduleCenterYCm - dragStartPoint.yCm : 0,
       lastClientX: event.clientX,
       lastClientY: event.clientY,
+      // Kilitli modülde oturum yalnız tıklamayı ve uyarıyı yönetir; taşıma başlamaz.
+      locked: isModuleLocked(moduleState),
+      lockedWarned: false,
     };
 
     renderer.domElement.setPointerCapture?.(event.pointerId);
@@ -5340,6 +5422,10 @@ export function createStandScene(
       if (!moduleGroup || !moduleState?.placement || !stageLayout) return;
 
       event.preventDefault();
+      if (isModuleLocked(moduleState)) {
+        showPlacementFeedback(MODULE_LOCKED_MESSAGE, { durationMs: 1800 });
+        return;
+      }
       if (moduleState.type === 'tulle-fabric') {
         if (pressedKey !== 'arrowup' && pressedKey !== 'arrowdown') return;
         const stepCm = getModulePlacementSnapCm(moduleState.type);
@@ -5961,6 +6047,8 @@ export function createStandScene(
     setFloorAreaColor,
     setFloorAreaDrawArmed,
     isFloorAreaSelected: () => floorAreaSelected,
+    getSelectedModuleIds,
+    showPlacementFeedback,
     buildWall,
     clearWall,
     clearSelection: (...args) => {

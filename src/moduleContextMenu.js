@@ -32,6 +32,7 @@ export function createModuleContextMenu({
   onFabricLightingChange,
   getShelfLightingState,
   onShelfLightingChange,
+  onLockChange,
 }) {
   const document = getFairStandHostDocument();
   const window = getFairStandHostWindow();
@@ -48,6 +49,9 @@ export function createModuleContextMenu({
   menu.setAttribute('aria-label', 'Modül işlemleri');
   menu.innerHTML = `
     <div class="module-context-title"></div>
+    <button type="button" role="menuitem" data-module-action="toggle-lock">Kilitle</button>
+    <button type="button" role="menuitem" data-module-action="lock-selection" hidden>Seçilenleri kilitle</button>
+    <button type="button" role="menuitem" data-module-action="unlock-selection" hidden>Seçilenlerin kilidini aç</button>
     <button type="button" role="menuitem" data-module-action="delete" class="danger">Sil</button>
     <button type="button" role="menuitem" data-module-action="duplicate-right">Çoğalt Sağ Tarafa</button>
     <button type="button" role="menuitem" data-module-action="duplicate-left">Çoğalt Sol Tarafa</button>
@@ -106,6 +110,33 @@ export function createModuleContextMenu({
   const imageResizeButton = menu.querySelector('[data-module-action="resize-image"]');
   const addRightButton = menu.querySelector('[data-module-action="add-right"]');
   const addLeftButton = menu.querySelector('[data-module-action="add-left"]');
+  const lockButton = menu.querySelector('[data-module-action="toggle-lock"]');
+  const lockSelectionButton = menu.querySelector('[data-module-action="lock-selection"]');
+  const unlockSelectionButton = menu.querySelector('[data-module-action="unlock-selection"]');
+  const deleteButton = menu.querySelector('[data-module-action="delete"]');
+  const duplicateButtons = [...menu.querySelectorAll('[data-module-action^="duplicate-"]')];
+  const separator = menu.querySelector('.module-context-separator');
+  const LOCKED_HINT = 'Kilitli öğe: önce kilidi açın.';
+
+  function setDisabled(button, disabled) {
+    button.disabled = Boolean(disabled);
+    button.setAttribute('aria-disabled', disabled ? 'true' : 'false');
+    if (disabled) button.title = LOCKED_HINT;
+    else button.removeAttribute('title');
+  }
+
+  // Toplu seçim menüsü: yalnız toplu kilit komutları; tek öğe komutları gizlenir.
+  function openMultiSelection(context) {
+    const ids = context.multiModuleIds;
+    const lockedCount = Number(context.multiLockedCount) || 0;
+    title.textContent = `${ids.length} öğe seçili${lockedCount ? ` · ${lockedCount} kilitli` : ''}`;
+    [...menu.querySelectorAll('[data-module-action]')].forEach((button) => {
+      button.hidden = true;
+    });
+    separator.hidden = true;
+    lockSelectionButton.hidden = lockedCount >= ids.length;
+    unlockSelectionButton.hidden = lockedCount === 0;
+  }
   const pickerTitle = pickerBackdrop.querySelector('#module-picker-title');
   const pickerContext = pickerBackdrop.querySelector('.module-picker-context');
   const pickerGroups = pickerBackdrop.querySelector('.module-picker-groups');
@@ -394,10 +425,25 @@ export function createModuleContextMenu({
     }
 
     activeContext = context;
+    if (Array.isArray(context.multiModuleIds) && context.multiModuleIds.length > 1) {
+      openMultiSelection(context);
+      positionMenu(context);
+      return;
+    }
+
+    const locked = Boolean(context.locked);
+    lockButton.hidden = false;
+    lockButton.textContent = locked ? 'Kilidi aç' : 'Kilitle';
+    lockSelectionButton.hidden = true;
+    unlockSelectionButton.hidden = true;
+    deleteButton.hidden = false;
+    setDisabled(deleteButton, locked);
+    duplicateButtons.forEach((button) => { button.hidden = false; });
+    separator.hidden = false;
     const panelSuffix = context.supportsGlass && Number.isInteger(context.stripNumber)
       ? ` · Panel ${context.stripNumber}`
       : '';
-    title.textContent = `Modül ${context.moduleIndex + 1} · ${describeModule(context)}${panelSuffix}`;
+    title.textContent = `Modül ${context.moduleIndex + 1} · ${describeModule(context)}${panelSuffix}${locked ? ' · Kilitli' : ''}`;
     glassModeButton.hidden = !context.supportsGlass;
     glassModeButton.textContent = context.isGlass
       ? 'Normal Panele Çevir'
@@ -431,6 +477,7 @@ export function createModuleContextMenu({
     const isTulle = moduleType === 'tulle-fabric';
     foamResizeButton.hidden = !(isFoam || isBoxBlock || isTulle);
     foamResizeButton.textContent = isBoxBlock ? 'Ölçü / opacity…' : 'Boyutlandır…';
+    setDisabled(foamResizeButton, locked);
     imageResizeButton.hidden = !context.hasImage;
     const isShelf = moduleType === 'shelf';
     const shelfLightingOn = isShelf ? Boolean(getShelfLightingState?.(context)) : false;
@@ -441,6 +488,10 @@ export function createModuleContextMenu({
     const showSideInsert = allowsModuleSideInsert(context);
     addRightButton.hidden = !showSideInsert;
     addLeftButton.hidden = !showSideInsert;
+    positionMenu(context);
+  }
+
+  function positionMenu(context) {
     menu.hidden = false;
 
     const margin = 8;
@@ -458,6 +509,19 @@ export function createModuleContextMenu({
 
     const action = button.dataset.moduleAction;
     const context = activeContext;
+    if (button.disabled) return;
+
+    if (action === 'toggle-lock') {
+      close();
+      onLockChange?.([context.moduleId], !context.locked, context);
+      return;
+    }
+
+    if (action === 'lock-selection' || action === 'unlock-selection') {
+      close();
+      onLockChange?.([...(context.multiModuleIds ?? [])], action === 'lock-selection', context);
+      return;
+    }
 
     if (action === 'delete') {
       close();

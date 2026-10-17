@@ -93,6 +93,14 @@ test('duplicating a module preserves its design but creates independent identiti
   assert.equal(original.strips[1].color, '#ff5500');
 });
 
+test('duplicateModuleState kilitli modülün kopyasını kilitsiz üretir, orijinal kilitli kalır', () => {
+  const original = createFlatPanelModuleState(100);
+  original.locked = true;
+  const duplicate = duplicateModuleState(original);
+  assert.equal(Object.hasOwn(duplicate, 'locked'), false);
+  assert.equal(original.locked, true);
+});
+
 test('separator state is color-only and uses the requested module width', () => {
   const separator50 = createSeparatorModuleState(50);
   const separator100 = createSeparatorModuleState(100);
