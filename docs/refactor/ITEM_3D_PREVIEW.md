@@ -25,15 +25,15 @@ Bu dosya **ne yaptık / sistem ne yapabilir / ne yapamaz** için yaşayan not. A
 
 | Katman | Yol |
 |---|---|
-| Preview motor | `fair-stand/src/itemAdminPreview.js` |
-| Pose merge / normalize | `fair-stand/src/itemAssembly.js` |
-| Prod tüketim | `fair-stand/src/scene3d.js` → `createItemAssemblyModule` (assembly varsa parts mesh) |
+| Preview motor | `kyrox-fair-stand/src/itemAdminPreview.js` |
+| Pose merge / normalize | `kyrox-fair-stand/src/itemAssembly.js` |
+| Prod tüketim | `kyrox-fair-stand/src/scene3d.js` → `createItemAssemblyModule` (assembly varsa parts mesh) |
 | Migration | `0038_item_assembly_parts`, `0039_assembly_rotation_xyz`, `0040_assembly_lock_group` |
 | API | `PUT /api/v1/fair-stand/admin/item-records/{itemKey}/assembly` |
 | Model / mapper | `FairStandItemAssemblyPartModel`, `item_mapper` → bootstrap `assembly.parts` (+ `lockGroupId`) |
-| Lock motor | `fair-stand/src/itemAdminAssemblyLock.js` (+ köşe snap `itemAdminCornerSnap.js`) |
-| CRM UI | `fair-crm/.../FairStandItem3dPreview.tsx`, Items admin sekme `preview3d` |
-| Test | `fair-stand/test/itemAssembly.test.js`, assembly lock unit testleri |
+| Lock motor | `kyrox-fair-stand/src/itemAdminAssemblyLock.js` (+ köşe snap `itemAdminCornerSnap.js`) |
+| CRM UI | `kyrox-fair-crm/.../FairStandItem3dPreview.tsx`, Items admin sekme `preview3d` |
+| Test | `kyrox-fair-stand/test/itemAssembly.test.js`, assembly lock unit testleri |
 
 ---
 

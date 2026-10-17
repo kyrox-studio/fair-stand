@@ -55,7 +55,7 @@ function listGuideSections() {
       <ul>
         <li><strong>Kilitle / Kilidi aç:</strong> Öğeyi bulunduğu yere sabitler. Kilitli öğe sürüklenemez, ok tuşlarıyla taşınamaz, döndürülemez, boyutlandırılamaz ve silinemez. Yanına ekleme veya başka bir öğenin taşınması onu kaydıracaksa işlem yapılmaz. Renk, görsel, cam, separatör ve kumaş kilitliyken de değiştirilebilir. Kilit projeyle kaydedilir. Shift ile toplu seçimde menü <strong>Seçilenleri kilitle / Seçilenlerin kilidini aç</strong> olur.</li>
         <li><strong>Sil:</strong> Modülü sahneden kaldırır. Kilitli öğede pasiftir.</li>
-        <li><strong>Çoğalt Sağ / Sol:</strong> Aynı modülün kopyasını belirtilen tarafa ekler. Kilitli öğenin kopyası kilitsiz gelir.</li>
+        <li><strong>Çoğalt Sağ / Sol:</strong> Aynı modülün kopyasını belirtilen tarafa ekler. Kilitli öğenin kopyası kilitsiz gelir. Kopyadaki metal separatör kendi grubunu alır; kopyada kapatmak orijinali etkilemez.</li>
         <li><strong>Boyutlandır…:</strong> Işıklı Strafor seçiliyken mevcut X/Y ölçülerini açar; yeni ölçüler girildiğinde aynı modül konumu ve ışık rengi korunarak yeniden boyutlandırılır.</li>
         <li><strong>Ölçü / opacity…:</strong> Kutu blok seçiliyken genişlik, derinlik, yükseklik ve 0–1 opacity açılır. Yüzler, renk ve taşıma <strong>Kutu Blok</strong> bölümündedir.</li>
         <li><strong>Kutu yürütme:</strong> Ok tuşları kutuyu sağa, sola, ileri, geri ve yukarı, aşağı yürütür. Taban zeminin altına inmez. Kutunun tepesi stand tavanını geçmez.</li>
@@ -143,7 +143,7 @@ function listGuideSections() {
       <p>Sahnedeki strafora <strong>sağ tık → Boyutlandır…</strong> ile mevcut X/Y ölçülerini tekrar açabilirsin. Yeni ölçüler uygulandığında modülün mevcut konumu, SVG görseli ve ışık rengi korunur.</p>
       <h4>Işık rengini değiştirme</h4>
       <p>Işıklı Straforu seçtiğinde sol taraftaki <strong>Seçili yüzey</strong> bölümünde <strong>Işıklı Strafor · Işık rengi</strong> kontrolü görünür. Renk seçici yalnızca arkadaki halo ışığını değiştirir; SVG'nin ön yüz renklerini değiştirmez.</p>
-      <p class="help-guide-note">Yerleştirme sırasında Esc tuşu ile işlem iptal edilebilir. Strafor, duvar üstü modül gibi taşınır ve kendi hareket snap adımını kullanır.</p>
+      <p class="help-guide-note">Yerleştirme sırasında Esc tuşu ile işlem iptal edilebilir. Strafor, duvar üstü modül gibi taşınır ve kendi hareket snap adımını kullanır. Yerleştirilemezse uyarı modülün adıyla ve gerçek sebeple çıkar (ör. Başka modülle çakışıyor.).</p>
     `,
   },
   {
@@ -183,6 +183,7 @@ function listGuideSections() {
       <p>Cam kabul eden paneli seçip sağ tık menüsünden <strong>Metal Separatöre Çevir</strong> seçeneğini kullanabilirsin. Aynı menüden normal panele döner.</p>
       <ul>
         <li>Tek panel kendi ölçüsüdür. <strong>Ctrl</strong> ile seçilen eksiksiz dikdörtgen tek ölçüdür: yan yana enler, üst üste boylar toplanır.</li>
+        <li>Aynı grup her zaman tek levha değildir. Modül silinir ya da taşınırsa veya satırlar arasında boşluk kalırsa liste her bitişik bloğu ayrı levha yazar. Örnek: 197 + 98 cm arada boşlukla → <strong>1 x 197 × 47</strong> + <strong>1 x 98 × 47</strong>. Toplam m² değişmez.</li>
         <li>Izgara gerçek teldir. Karelerin içi boştur; açı değişince çizgi kaybolmaz.</li>
         <li>Paneller satırı parça adedini ve ölçüyü yazar: <strong>7 x Metal Separatör 100 × 49,5 cm - metre_kare</strong>.</li>
         <li>Üretim satırı o parçaların metrekare toplamını Tül satırı gibi yazar: <strong>3,47 × Metal Separatör · metre_kare · metal_separator</strong>.</li>
@@ -275,7 +276,7 @@ function listGuideSections() {
     html: `
       <ul>
         <li>Çoklu panel seçimi ile Lightbox/Mesh oluşturma aynı kural değildir; kaplama için aynı düzlem ve eksiksiz dikdörtgen zorunludur.</li>
-        <li>Geçersiz modül yerleşimleri ve çarpışmalar sistem tarafından engellenir.</li>
+        <li>Geçersiz modül yerleşimleri ve çarpışmalar sistem tarafından engellenir; uyarı modülün adını ve sebebini yazar.</li>
         <li>Kütüphaneden kullanılan bir görsel silinirse, onay sonrası atandığı yüzeylerden de kaldırılır.</li>
         <li>Birden fazla modülü kapsayan tek parça bez varken bağlı modüller ayrı ayrı taşınamaz/döndürülemez.</li>
         <li>Sağ tık menüsündeki seçenekler her modülde aynı değildir; yalnız desteklenen işlemler gösterilir.</li>
