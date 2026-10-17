@@ -128,6 +128,7 @@ export const SOURCE_FILE_REQUIRED_DOMAINS = Object.freeze({
   'src/moduleContextMenu.js': frozenDomains('ui', 'catalog', 'behavior'),
   'src/moduleContracts.js': frozenDomains('architecture', 'catalog', 'behavior', 'bom'),
   'src/moduleDragSidebar.js': frozenDomains('ui', 'catalog'),
+  'src/moduleLock.js': frozenDomains('behavior', 'placement', 'state'),
   'src/moduleMove.js': frozenDomains('behavior', 'placement'),
   'src/modulePlacement.js': frozenDomains('behavior', 'placement'),
   'src/moduleRecipes.js': frozenDomains('bom'),

@@ -35,6 +35,9 @@ export function validateImportedModuleState(moduleState) {
   if (!MODULE_STATE_TYPES.includes(moduleState.type)) {
     return { ok: false, message: 'Proje modül tipi geçersiz.' };
   }
+  if (Object.hasOwn(moduleState, 'locked') && typeof moduleState.locked !== 'boolean') {
+    return { ok: false, message: 'Proje modül kilidi geçersiz.' };
+  }
   return { ok: true };
 }
 

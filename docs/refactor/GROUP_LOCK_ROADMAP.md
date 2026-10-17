@@ -55,6 +55,15 @@
 
 ### Faz 1 — Kilit (A)
 
+> **Durum: uygulandı.**
+> - Kaynak `src/moduleLock.js`.
+> - Testler `test/moduleLock.test.js` ve `e2e/module-lock.spec.mjs`.
+> - Uygulamada verilen kararlar:
+>   - Kilit Sil ve Boyutlandır'ı pasifleştirir.
+>   - "Tüm özellikleri kaldır" kilidi korur ve kilitli Işıklı Straforu silmez.
+>   - Sahnede kilit simgesi yok; kilit menü başlığında ve seçim bilgisinde "Kilitli" olarak görünür.
+>   - Stand kurulumu "Yeni proje oluşturulacak" akışı olduğu ve eski kayıtlı projeyi koruduğu için ek kilit uyarısı eklenmedi.
+
 **Amaç.** Depo, TV, box gibi yerleşmiş parçaların yanlışlıkla bozulmasını bitirmek.
 
 **Davranış**
@@ -232,11 +241,11 @@ Kesin liste `contract:verify` discovery'si ile çıkarılır.
 | Konu | Karar | Durum |
 |---|---|---|
 | Faz sırası | Kilit → Geri al → Grup → Çok duvarlı grup → Şablon → Gelişmiş | Öneri |
-| Toplu seçim tuşu | Shift+tık (Ctrl panel seçiminde kalır) | Öneri |
+| Toplu seçim tuşu | Shift+tık (Ctrl panel seçiminde kalır) | Karar (Faz 1) |
 | Gruptan tek öğe seçmek | Alt+tık | Öneri |
-| Kilitli öğe silinebilir mi | Hayır, önce kilit açılır | Öneri |
+| Kilitli öğe silinebilir mi | Hayır, önce kilit açılır | Karar (Faz 1) |
 | Grup seçiliyken Sil | Bütün grup, onaylı | Öneri |
-| Çoğaltılan öğe / grup | Kilitsiz doğar; grup kopyası yeni gruptur | Öneri |
+| Çoğaltılan öğe / grup | Kilitsiz doğar (Faz 1 karar); grup kopyası yeni gruptur (öneri) | Kısmen karar |
 | Grupta duvar sayısı (Faz 3) | En fazla 1 | Öneri |
 | Geri alma geçmişi | Kaydedilmez, son 50 adım | Öneri |
 | Görsel silme geri alınır mı | Hayır, ayrı onaylı işlem | Öneri |

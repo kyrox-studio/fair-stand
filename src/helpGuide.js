@@ -19,6 +19,7 @@ function listGuideSections() {
         <tr><th>Sol tık</th><td>Panel, modül veya zemini seçer.</td></tr>
         <tr><th>Modülü tut + sürükle</th><td>Modülü geçerli yerleşim kurallarına göre taşır.</td></tr>
         <tr><th>Ctrl/Cmd + tık</th><td>İlk panel ile tıklanan panel arasında çoklu panel seçimi yapar.</td></tr>
+        <tr><th>Shift + tık (öğe üstünde)</th><td>Öğeyi toplu seçime ekler veya çıkarır. Sağ tıkla seçilenlerin hepsi birden kilitlenir veya kilidi açılır. Boş alanda Shift kamerayı etkilemeye devam eder.</td></tr>
         <tr><th>Boş alanda sol sürükle</th><td>Kamerayı stand etrafında döndürür.</td></tr>
         <tr><th>Orta tuş / tekerleğe basılı sürükle</th><td>Kamerayı yatay-dikey kaydırır (pan).</td></tr>
         <tr><th>Mouse tekerleği</th><td>Yakınlaştırır / uzaklaştırır.</td></tr>
@@ -39,7 +40,7 @@ function listGuideSections() {
         <tr><th>H</th><td>Home görünüşüne döner. L Stand Sağ’da sol-ön köşeden bakar. Diğer stand tiplerinde sağ-ön köşeden bakar. ViewCube ⌂ aynı görünüşü açar.</td></tr>
         <tr><th>Shift + R</th><td>Seçili modülü saat yönünde döndürür. Sürükleme sırasında da kullanılabilir.</td></tr>
         <tr><th>↑ ↓ ← →</th><td>Seçili modülü kendi snap adımına göre ekranda görülen yöne taşır.</td></tr>
-        <tr><th>Delete</th><td>Sahnede tek modül seçiliyse modülü siler. Görsel kütüphanesinde bir görsel seçili/odaktaysa görsel silme uyarısını açar.</td></tr>
+        <tr><th>Delete</th><td>Sahnede tek modül seçiliyse modülü siler (kilitli değilse). Görsel kütüphanesinde bir görsel seçili/odaktaysa görsel silme uyarısını açar.</td></tr>
         <tr><th>Esc</th><td>Açık sağ tık menüsü, katalog veya yardım penceresini kapatır.</td></tr>
         <tr><th>Enter</th><td>X/Y alanlarında uygunsa sahne oluşturmayı; proje adı popupında onaylamayı tetikler.</td></tr>
       </tbody></table>
@@ -52,8 +53,9 @@ function listGuideSections() {
     html: `
       <p>Menü içeriği seçilen modül veya panelin desteklediği özelliklere göre değişir.</p>
       <ul>
-        <li><strong>Sil:</strong> Modülü sahneden kaldırır.</li>
-        <li><strong>Çoğalt Sağ / Sol:</strong> Aynı modülün kopyasını belirtilen tarafa ekler.</li>
+        <li><strong>Kilitle / Kilidi aç:</strong> Öğeyi bulunduğu yere sabitler. Kilitli öğe sürüklenemez, ok tuşlarıyla taşınamaz, döndürülemez, boyutlandırılamaz ve silinemez. Yanına ekleme veya başka bir öğenin taşınması onu kaydıracaksa işlem yapılmaz. Renk, görsel, cam, separatör ve kumaş kilitliyken de değiştirilebilir. Kilit projeyle kaydedilir. Shift ile toplu seçimde menü <strong>Seçilenleri kilitle / Seçilenlerin kilidini aç</strong> olur.</li>
+        <li><strong>Sil:</strong> Modülü sahneden kaldırır. Kilitli öğede pasiftir.</li>
+        <li><strong>Çoğalt Sağ / Sol:</strong> Aynı modülün kopyasını belirtilen tarafa ekler. Kilitli öğenin kopyası kilitsiz gelir.</li>
         <li><strong>Boyutlandır…:</strong> Işıklı Strafor seçiliyken mevcut X/Y ölçülerini açar; yeni ölçüler girildiğinde aynı modül konumu ve ışık rengi korunarak yeniden boyutlandırılır.</li>
         <li><strong>Ölçü / opacity…:</strong> Kutu blok seçiliyken genişlik, derinlik, yükseklik ve 0–1 opacity açılır. Yüzler, renk ve taşıma <strong>Kutu Blok</strong> bölümündedir.</li>
         <li><strong>Kutu yürütme:</strong> Ok tuşları kutuyu sağa, sola, ileri, geri ve yukarı, aşağı yürütür. Taban zeminin altına inmez. Kutunun tepesi stand tavanını geçmez.</li>

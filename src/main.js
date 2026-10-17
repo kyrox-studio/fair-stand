@@ -57,6 +57,12 @@ import {
 } from './projectNaming.js';
 import { buildSaveAsClone } from './projectSaveAs.js';
 import { createAutosaveController } from './autosaveController.js';
+import {
+  MODULE_LOCKED_MESSAGE,
+  guardPlanAgainstLocks,
+  isModuleLocked,
+  setModulesLocked,
+} from './moduleLock.js';
 import { createProjectLoadingController, setButtonBusy, setSaveProjectEnabled } from './projectUi.js';
 import { formatProjectSwitchMessage, shouldConfirmProjectSwitch } from './projectSwitch.js';
 import { observeSelectionFeedback, observeStatusTones } from './uiFeedback.js';
@@ -337,17 +343,17 @@ function getAssetUrl(assetId) {
 
 const scene3d = createStandScene(
   viewport,
-  (surfaces) => {
+  (surfaces, selectedModuleIds = []) => {
     const feedback = describeSurfaceSelection(surfaces, currentModules);
     selectedFoamModuleId = feedback.foamModuleId;
     if (foamLightControls) foamLightControls.hidden = !feedback.foamControlsVisible;
     if (feedback.foamControlsVisible && foamLightColorInput) {
       foamLightColorInput.value = feedback.foamColor;
     }
-    selectionInfo.textContent = feedback.message;
+    selectionInfo.textContent = describeModuleLockSelection(feedback.message, selectedModuleIds);
   },
   getAssetUrl,
-  (context) => moduleContextMenu.open(context),
+  (context) => openModuleContextMenu(context),
   (floorSelection) => {
     const message = floorSelection?.target === 'area'
       ? describeFloorAreaSelection(floorSelection)
@@ -486,6 +492,11 @@ function deleteContextModule(context) {
   if (index < 0 || index >= currentModules.length) return;
 
   const module = currentModules[index];
+  if (isModuleLocked(module)) {
+    renderWallResult(MODULE_LOCKED_MESSAGE, true);
+    scene3d.showPlacementFeedback(MODULE_LOCKED_MESSAGE, { durationMs: 2200 });
+    return;
+  }
   moduleDeleteConfirmOpen = true;
   let confirmed = false;
   try {
@@ -542,7 +553,8 @@ function planContextContinuousInsertion(insertedModules, context, side) {
     currentStand.xCm,
   );
 
-  return planContinuousWallInsertion({
+  // Yanına ekleme/çoğaltma zinciri kaydırıp kilitli bir modülü oynatacaksa reddedilir.
+  return guardPlanAgainstLocks(planContinuousWallInsertion({
     modules,
     insertedModules,
     targetModuleId: sourceModule.id,
@@ -553,7 +565,7 @@ function planContextContinuousInsertion(insertedModules, context, side) {
     standType: currentStand.standType,
     standXCm: currentStand.xCm,
     standYCm: currentStand.yCm,
-  });
+  }), currentModules);
 }
 
 function planContextFreeInsertion(insertedModules, context, side) {
@@ -564,7 +576,7 @@ function planContextFreeInsertion(insertedModules, context, side) {
   }
 
   const sourceModule = currentModules[index];
-  return planFreeSideInsertion({
+  return guardPlanAgainstLocks(planFreeSideInsertion({
     modules: currentModules,
     insertedModules,
     targetModuleId: sourceModule.id,
@@ -572,7 +584,7 @@ function planContextFreeInsertion(insertedModules, context, side) {
     standType: currentStand.standType,
     standXCm: currentStand.xCm,
     standYCm: currentStand.yCm,
-  });
+  }), currentModules);
 }
 
 function applyFreeInsertionPlan(plan, insertedModules, context, side) {
@@ -799,7 +811,7 @@ function planCatalogAppendInsertion(moduleStates) {
   // Fiziksel zincir sonuna eklemek için yan duvarda caller side ters gönderilir.
   const targetWallId = targetModule.placement?.wallId;
   const side = targetWallId === 'left' || targetWallId === 'right' ? 'left' : 'right';
-  const plan = planContinuousWallInsertion({
+  const plan = guardPlanAgainstLocks(planContinuousWallInsertion({
     modules: currentModules,
     insertedModules: moduleStates,
     targetModuleId: targetModule.id,
@@ -807,7 +819,7 @@ function planCatalogAppendInsertion(moduleStates) {
     standType: currentStand.standType,
     standXCm: currentStand.xCm,
     standYCm: currentStand.yCm,
-  });
+  }), currentModules);
   return { ...plan, appendMode: 'continuous' };
 }
 
@@ -1102,6 +1114,11 @@ async function resizeContextIlluminatedFoam(context) {
   const index = findContextModuleIndex(context);
   if (index < 0) return;
   const moduleState = currentModules[index];
+  if (isModuleLocked(moduleState)) {
+    renderWallResult(MODULE_LOCKED_MESSAGE, true);
+    scene3d.showPlacementFeedback(MODULE_LOCKED_MESSAGE, { durationMs: 2200 });
+    return;
+  }
   if (moduleState?.type === 'tulle-fabric') {
     const dimensions = await requestTulleFabricDimensions(moduleState.widthCm, moduleState.heightCm);
     if (!dimensions) return;
@@ -1150,7 +1167,52 @@ const moduleContextMenu = createModuleContextMenu({
   onFabricLightingChange: changeContextFabricLighting,
   getShelfLightingState: getContextShelfLightingState,
   onShelfLightingChange: changeContextShelfLighting,
+  onLockChange: changeModuleLock,
 });
+
+// Seçim bilgisine kilit durumu: tek kilitli öğede " · Kilitli", toplu seçimde sayılar.
+function describeModuleLockSelection(message, selectedModuleIds = []) {
+  if (!selectedModuleIds.length) return message;
+  const byId = new Map(currentModules.map((module) => [module.id, module]));
+  const lockedCount = selectedModuleIds.filter((id) => isModuleLocked(byId.get(id))).length;
+  if (selectedModuleIds.length > 1) {
+    return `${selectedModuleIds.length} öğe seçili${lockedCount ? ` · ${lockedCount} kilitli` : ''}. `
+      + 'Shift+tık ile ekle/çıkar; sağ tık ile hepsini kilitle veya kilidini aç.';
+  }
+  return lockedCount ? `${message} · Kilitli` : message;
+}
+
+// Kilit yalnız proje örneğinin durumudur: sahne yeniden kurulmaz, otomatik kayıt
+// modül imzasındaki değişikliği görüp kaydeder.
+function changeModuleLock(moduleIds, locked) {
+  const changed = setModulesLocked(currentModules, moduleIds, locked);
+  const count = moduleIds.length;
+  const subject = count > 1 ? `${count} öğe` : 'Öğe';
+  selectionInfo.textContent = locked
+    ? `${subject} kilitlendi. Taşınamaz, döndürülemez ve silinemez; renk ve görsel değiştirilebilir.`
+    : `${subject} kilidi açıldı.`;
+  return changed;
+}
+
+// Sağ tık bağlamına kilit bilgisi eklenir; toplu seçimdeki bir öğeye sağ tıklanırsa
+// menü bütün seçime uygulanır.
+function openModuleContextMenu(context) {
+  if (!context) {
+    moduleContextMenu.open(null);
+    return;
+  }
+  const byId = new Map(currentModules.map((module) => [module.id, module]));
+  const selectedIds = scene3d.getSelectedModuleIds();
+  if (selectedIds.length > 1 && selectedIds.includes(context.moduleId)) {
+    moduleContextMenu.open({
+      ...context,
+      multiModuleIds: selectedIds,
+      multiLockedCount: selectedIds.filter((id) => isModuleLocked(byId.get(id))).length,
+    });
+    return;
+  }
+  moduleContextMenu.open({ ...context, locked: isModuleLocked(byId.get(context.moduleId)) });
+}
 
 moduleDragSidebar = createModuleDragSidebar({
   anchorButton: openModuleCatalogButton,
@@ -1690,8 +1752,9 @@ resetModuleFeaturesButton.addEventListener('click', () => {
     return;
   }
 
+  // Kilitli Işıklı Strafor silinmez ve olduğu gibi kalır; kilit "özellik" değildir, korunur.
   const illuminatedFoamCount = currentModules.filter(
-    (module) => module?.type === 'illuminated-foam',
+    (module) => module?.type === 'illuminated-foam' && !isModuleLocked(module),
   ).length;
   const confirmed = window.confirm(
     'Tüm modül özellikleri varsayılan ayarlarına dönecektir. Onaylıyor musunuz?\n\n'
@@ -1717,7 +1780,16 @@ resetModuleFeaturesButton.addEventListener('click', () => {
     return;
   }
 
-  currentModules = resetModules;
+  const resetBySourceId = new Map();
+  resetCandidates.forEach((module, index) => {
+    if (isModuleLocked(module)) resetModules[index].locked = true;
+    resetBySourceId.set(module.id, resetModules[index]);
+  });
+  currentModules = currentModules
+    .map((module) => (module?.type === 'illuminated-foam'
+      ? (isModuleLocked(module) ? module : null)
+      : resetBySourceId.get(module.id)))
+    .filter(Boolean);
   selectedFoamModuleId = null;
   if (foamLightControls) foamLightControls.hidden = true;
   moduleContextMenu.close();

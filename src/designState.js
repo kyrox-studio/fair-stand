@@ -1,4 +1,5 @@
 import { normalizeStripOccupancy } from './stripOccupancy.js';
+import { clearDuplicateLock } from './moduleLock.js';
 import {
   resolveAutomaticWallFlatPanelItemKey,
   resolveFlatPanelStripCount,
@@ -1109,6 +1110,8 @@ export function duplicateModuleState(moduleState) {
   if (!moduleState) return null;
   const duplicate = JSON.parse(JSON.stringify(moduleState));
   duplicate.id = createId('module');
+  // Kilit yerinde sabitlenmiş bu örneğe aittir; kopya kilitsiz doğar.
+  clearDuplicateLock(duplicate);
   if (Array.isArray(duplicate.strips)) {
     duplicate.strips = duplicate.strips.map((strip, stripIndex) => ({
       ...strip,
