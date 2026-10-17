@@ -15,6 +15,7 @@ Repository ilk MVP taslağının ötesindedir. Mevcut uygulama aşağıdaki ana 
 - Panel, separatör, vitrin, raf, depo kapısı, panel bazalı duvar, banko ve baza modülleri.
 - Mobilya, depo ekipmanı, bitki/saksı, TV/video-wall ve LED projektör katalog öğeleri.
 - Renk, görsel ve editable surface state altyapısı.
+- Öğe kilidi: kilitli öğe taşınmaz, döndürülmez, silinmez ve zincir kaydırmasıyla oynamaz. Shift+tık ile toplu seçip toplu kilitleme yapılır (`src/moduleLock.js`).
 - Recipe / production-parts tabanlı BOM ve üretim verisi altyapısı.
 - Proje ve asset yönetimi için ayrı state/storage katmanları.
 - Module/feature contract altyapısı, universal system change gate ve full-system impact sweep.
@@ -214,6 +215,7 @@ Bir feature birden fazla modülü/domaini koordine ediyorsa `src/featureContract
 - `ROADMAP.md` — aktif üst seviye ürün/teknik plan.
 - `ROADMAP_PHASE_4.md` — FAZ 4 ayrıntılı planı.
 - FAZ 5–6 ayrıntılı planı, gelecek ürün gereksinimleri ve render backlog'u `kyrox-platform` deposundadır: `projects/fair-stand/ROADMAP_PHASE_5_6.md`, `PRODUCT_FUTURE.md`, `RENDER_FUTURE_BACKLOG.md`.
+- Sahne editörü planı (kilit, geri al, grup, çok duvarlı grup, kurumsal şablon) de `kyrox-platform` deposundadır: `projects/fair-stand/GROUP_LOCK_ROADMAP.md`. Faz 1 (kilit) uygulandı.
 
 ### Historical / legacy
 
