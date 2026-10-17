@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-// Faz 1 — Kilit (docs/refactor/GROUP_LOCK_ROADMAP.md): kilitli öğe sürüklenmez,
+// Faz 1 — Kilit (kyrox-platform projects/fair-stand/GROUP_LOCK_ROADMAP.md): kilitli öğe sürüklenmez,
 // ok tuşu ve Delete ile oynamaz, kilit projeyle kaydedilir; kilit açılınca taşınır.
 // Shift+tık toplu seçimi sağ tık menüsünden hepsini birden kilitler.
 

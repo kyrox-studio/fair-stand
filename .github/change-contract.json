@@ -1,13 +1,14 @@
 {
   "schemaVersion": 2,
-  "id": "fair-stand-docs-son-degisiklikler-v1",
-  "kind": "feature",
-  "summary": "Son değişikliklere (#272–#277) göre belgeler güncellendi: uygulama içi Kullanım Kılavuzu (src/helpGuide.js) çoğaltmada metal grup ayrımı, metal separatör bitişik blok kuralı ve wall-overlay uyarılarının modül adı + sebep yazması; PENDING_ITEM_DECISIONS B.11b çoğaltma kuralı; GROUP_LOCK_ROADMAP grup çoğaltma notu; ITEM_3D_PREVIEW ve ITEM_DIMENSIONS eski repo klasör adları (kyrox-fair-stand / kyrox-fair-crm). Çalışma zamanı davranışı değişmez.",
+  "id": "fair-stand-editor-roadmap-to-platform-v1",
+  "kind": "architecture",
+  "summary": "Sahne editörü yol haritası (kilit, geri al, grup, çok duvarlı grup, kurumsal şablon) kyrox-platform projects/fair-stand/GROUP_LOCK_ROADMAP.md altına taşındı (kyrox-platform PR #108). Platform AGENTS.md sert kuralı gereği Fair Stand plan belgeleri platformda tutulur. Bu depodaki docs/refactor/GROUP_LOCK_ROADMAP.md kaldırıldı; docs/refactor/README.md satırı silindi; README.md Plan/gelecek bölümü platform yolunu gösterir; Güncel durum listesine öğe kilidi eklendi; e2e/module-lock.spec.mjs başlık yorumu yeni yolu gösterir. Çalışma zamanı davranışı değişmez.",
   "owners": [
-    "src/helpGuide.js"
+    "README.md",
+    "docs/refactor/README.md"
   ],
   "sourceOfTruth": [
-    "src/helpGuide.js"
+    "README.md"
   ],
   "impact": {
     "catalog": "not-applicable",
@@ -17,109 +18,49 @@
     "renderer": "not-applicable",
     "persistence": "not-applicable",
     "bom": "not-applicable",
-    "ui": "affected",
+    "ui": "not-applicable",
     "composition": "not-applicable",
     "assets": "not-applicable",
     "storage": "not-applicable",
     "importExport": "not-applicable",
     "performance": "not-applicable",
-    "accessibility": "affected",
-    "architecture": "not-applicable",
+    "accessibility": "not-applicable",
+    "architecture": "affected",
     "security": "not-applicable",
     "tests": "affected"
   },
   "impactAnalysis": {
     "mode": "full-system",
-    "affectedFiles": [
-      "index.html",
-      "scripts/verify-change-contract.mjs",
-      "src/configuratorStyles.js",
-      "src/helpGuide.css",
-      "src/helpGuide.js",
-      "src/main.js",
-      "src/mountFairStand.js",
-      "src/systemChangeContract.js"
-    ],
+    "affectedFiles": [],
     "affectedTests": [
-      "e2e/help-guide-recent-rules.spec.mjs",
-      "test/autosaveMainIntegration.test.js",
-      "test/bundleLoadingContract.test.js",
-      "test/catalogDragItemKeyInvariant.test.js",
-      "test/colorEditorControllerMainIntegration.test.js",
-      "test/colorEditorMainIntegration.test.js",
-      "test/f027SceneReset.test.js",
-      "test/f028FeatureReset.test.js",
-      "test/helpGuide.test.js",
-      "test/illuminatedFoamModule.test.js",
-      "test/imageAssetDeletion.test.js",
-      "test/imageAssetLiveDelete.test.js",
-      "test/itemDefaultZCm.test.js",
-      "test/lightboxFabric.test.js",
-      "test/lightboxFabricAppearance.test.js",
-      "test/lightboxFabricLighting.test.js",
-      "test/moduleBehaviorPolicy.test.js",
-      "test/moduleStateConstructionRegistry.test.js",
-      "test/mountFairStandBoundary.test.js",
-      "test/productionBomPanelEntry.test.js",
-      "test/projectAtomicDeletion.test.js",
-      "test/projectCustomerPanel.test.js",
-      "test/projectDropdownSwitchIntegration.test.js",
-      "test/projectImportFlow.test.js",
-      "test/projectRevisionSession.test.js",
-      "test/projectUiMainIntegration.test.js",
-      "test/removedIndoorPlant2.test.js",
-      "test/runtimeSettings.test.js",
-      "test/scene3dPublicContract.test.js",
-      "test/selectionFeedbackMainIntegration.test.js",
-      "test/shelfLighting.test.js",
-      "test/sidebarControllerMainIntegration.test.js",
-      "test/stageFeedbackMainIntegration.test.js",
-      "test/systemChangeGate.test.js",
-      "test/systemChangeGateLocalDiff.test.js",
-      "test/systemImpactAnalysis.test.js",
-      "test/tulleFabric.test.js",
-      "test/uiFeedbackMainIntegration.test.js",
-      "test/viewKeyboardMainIntegration.test.js",
-      "test/viewportToolbarMainIntegration.test.js",
-      "test/visibleUiContract.test.js"
+      "test/developerEntrypointDocs.test.js"
     ],
-    "affectedDocs": [
-      "audit/evidence/A03_ARCHITECTURE.md",
-      "docs/items/audit/properties/properties/catalog.label.md",
-      "docs/items/audit/properties/properties/catalog.type.md",
-      "docs/items/audit/properties/properties/state.type.md",
-      "docs/refactor/GROUP_LOCK_ROADMAP.md",
-      "docs/refactor/ITEM_3D_PREVIEW.md",
-      "docs/refactor/ITEM_DIMENSIONS.md",
-      "docs/refactor/PENDING_ITEM_DECISIONS.md"
-    ],
+    "affectedDocs": [],
     "relatedFindings": {
       "affected": [],
       "reviewedNotAffected": []
     },
-    "notes": "Yalnız src/helpGuide.js içindeki kılavuz metni değişti (4 cümle); fonksiyonlar, DOM yapısı, sınıf adları, erişilebilirlik öznitelikleri (aria-*, role=dialog) ve initHelpGuide imzası aynı. Keşif 'helpGuide'/'help-guide-note' token'ı üzerinden main.js entegrasyonları, ana-entegrasyon testleri ve audit belgelerini listeledi; sözleşmeleri değişmiyor. Belge değişiklikleri: PENDING_ITEM_DECISIONS B.11b çoğaltma cümlesi, GROUP_LOCK_ROADMAP grup çoğaltma notu, ITEM_3D_PREVIEW/ITEM_DIMENSIONS klasör adları kyrox-fair-stand/kyrox-fair-crm. audit/ ve docs/items/audit/ yalnız dosya adına atıf yapıyor, içerikleri geçerli. Bulgu adayları (varsa) kılavuz metniyle ilgisiz."
+    "notes": "Yalnız belge yeri ve README metni değişir. e2e/module-lock.spec.mjs içinde yalnız açıklama satırı değişir; test adımları aynıdır. Keşfin bulduğu bağımlılar README/belge token'ları üzerindendir ve davranışları değişmez; bulgu adayları okundu, hiçbiri bu belge taşımasından etkilenmez."
   },
   "tests": {
     "targeted": [
-      "test/helpGuide.test.js"
+      "test/developerEntrypointDocs.test.js"
     ],
     "fullSuite": true,
     "build": true,
     "e2e": {
-      "required": true,
-      "targeted": [
-        "e2e/help-guide-recent-rules.spec.mjs"
-      ],
-      "reason": "Gerçek Chromium'da ? düğmesiyle Kullanım Kılavuzu açılır; Metal Separatör, Sağ Tık Menüsü, Işıklı Strafor ve Önemli Kurallar bölümleri genişletilip yeni kuralların göründüğü doğrulanır. Spec eski kılavuzla kırılıyor."
+      "required": false,
+      "targeted": [],
+      "reason": "Tarayıcıda görünen davranış değişmez; yalnız belge yeri, README metni ve bir E2E yorum satırı değişir. Canonical CI baseline E2E paketini yine çalıştırır."
     }
   },
   "risk": {
     "level": "low",
-    "notes": "Yalnız kılavuz metni ve belge satırları değişir; kod davranışı aynı."
+    "notes": "Belge taşıma; runtime kodu yok."
   },
   "migration": {
     "required": false,
-    "notes": "Veri değişmez."
+    "notes": "Veri etkisi yok."
   },
-  "rollback": "Bu PR commitini geri al."
+  "rollback": "docs/refactor/GROUP_LOCK_ROADMAP.md dosyasını ve docs/refactor/README.md satırını geri getir; README.md ve e2e yorum değişikliğini geri al."
 }
